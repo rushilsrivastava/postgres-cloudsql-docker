@@ -23,7 +23,7 @@ wait_for_postgres() {
 echo "Starting PostgreSQL container..."
 docker run -d --name postgres-test \
     -e POSTGRES_PASSWORD=postgres \
-    postgis-cloudsql:test
+    postgres-cloudsql-docker:test
 
 # Wait for PostgreSQL to be ready
 wait_for_postgres
@@ -32,7 +32,7 @@ echo "Testing hll installation..."
 
 # Creating extension hll
 echo "Installing hll extension..."
-run_sql "CREATE EXTENSION IF NOT EXISTS hll;"
+run_sql "CREATE EXTENSION hll;"
 
 # Verify extension
 echo "Checking hll extension..."

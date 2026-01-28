@@ -44,7 +44,7 @@ if ! grep -q "pg_cron configuration" "$conf" 2>/dev/null; then
     echo "Created backup at ${conf}.backup"
     
     # Update the configuration parameters
-    update_conf "shared_preload_libraries" "'pg_cron'"
+    update_conf "shared_preload_libraries" "'pg_cron,hll,pg_stat_statements'"
     update_conf "cron.database_name" "'postgres'"  # This must be 'postgres'
     update_conf "cron.use_background_workers" "on"
     update_conf "max_worker_processes" "20"

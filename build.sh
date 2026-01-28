@@ -10,7 +10,7 @@ POSTGIS_VERSION="3.5"
 HLL_VERSION="2.18"
 
 # Repository name
-REPO="rushilsrivastava/postgis-cloudsql"
+REPO="rushilsrivastava/postgres-cloudsql"
 
 # Build and push images for each PostgreSQL version
 for version in "${PG_VERSIONS[@]}"; do
@@ -20,16 +20,14 @@ for version in "${PG_VERSIONS[@]}"; do
         --build-arg POSTGIS_VERSION=${POSTGIS_VERSION} \
         --build-arg HLL_VERSION=${HLL_VERSION} \
         -t ${REPO}:${version} \
-        -t ${REPO}:${version}-postgis${POSTGIS_VERSION} \
-        -t ${REPO}:${version}-postgis${POSTGIS_VERSION}-hll${HLL_VERSION} \
-        -t ${REPO}:${version}-hll${HLL_VERSION} \
         .
     
     if [ $? -eq 0 ]; then
-        echo "Successfully built image for PostgreSQL ${version}"
+        PG_FULL_VERSION=$(docker run --rm ${REPO}:${version} postgres -V | awk '{print $3}')
+        docker tag ${REPO}:${version} ${REPO}:${PG_FULL_VERSION}
+        echo "Successfully built image for PostgreSQL ${version} (${PG_FULL_VERSION})"
         docker push ${REPO}:${version}
-        docker push ${REPO}:${version}-postgis${POSTGIS_VERSION}
-        docker push ${REPO}:${version}-postgis${POSTGIS_VERSION}-hll${HLL_VERSION}
+        docker push ${REPO}:${PG_FULL_VERSION}
     else
         echo "Failed to build image for PostgreSQL ${version}"
         exit 1

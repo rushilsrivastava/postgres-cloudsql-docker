@@ -2,23 +2,14 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'Dockerfile'
       - '.github/workflows/docker-build.yml'
   workflow_dispatch:
-    inputs:
-      postgis_version:
-        description: 'PostGIS version to build'
-        required: true
-        default: '3.5'
-      hll_version:
-        description: 'HLL version to build'
-        required: true
-        default: '2.18'
 
 env:
-  IMAGE_NAME: rushilsrivastava/postgis-cloudsql
+  IMAGE_NAME: rushilsrivastava/postgres-cloudsql
 
 jobs:
   build:
@@ -26,7 +17,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg_version: [14, 15, 16, 17]
+        include:
+          - pg_major: 14
+            postgis_version: 3.5
+            hll_version: 2.18
+          - pg_major: 15
+            postgis_version: 3.5
+            hll_version: 2.18
+          - pg_major: 16
+            postgis_version: 3.5
+            hll_version: 2.18
+          - pg_major: 17
+            postgis_version: 3.5
+            hll_version: 2.18
 
     steps:
       - name: Checkout code
@@ -46,35 +49,38 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Determine PostgreSQL full version
+        id: pg_version
+        run: |
+          PG_FULL_VERSION=$(docker run --rm postgis/postgis:${{ matrix.pg_major }}-${{ matrix.postgis_version }} postgres -V | awk '{print $3}')
+          echo "pg_full_version=${PG_FULL_VERSION}" >> $GITHUB_OUTPUT
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ matrix.pg_version }}
-            type=raw,value=${{ matrix.pg_version }}-${{ github.sha }}
-            type=raw,value=${{ matrix.pg_version }}-postgis${{ inputs.postgis_version || '3.5' }}
-            type=raw,value=${{ matrix.pg_version }}-hll${{ inputs.hll_version || '2.18' }}
-            type=raw,value=${{ matrix.pg_version }}-postgis${{ inputs.postgis_version || '3.5' }}-hll${{ inputs.hll_version || '2.18' }}
+            type=raw,value=${{ matrix.pg_major }}
+            type=raw,value=${{ steps.pg_version.outputs.pg_full_version }}
           labels: |
             org.opencontainers.image.title=PostGIS with pg_cron and postgres_hll
-            org.opencontainers.image.description=PostgreSQL ${{ matrix.pg_version }} with PostGIS ${{ inputs.postgis_version || '3.5' }}, pg_cron and postgres_hll
-            org.opencontainers.image.version=${{ matrix.pg_version }}-postgis${{ inputs.postgis_version || '3.5' }}-hll${{ inputs.hll_version || '2.18' }}
+            org.opencontainers.image.description=PostgreSQL ${{ matrix.pg_major }} with PostGIS ${{ matrix.postgis_version }}, pg_cron and postgres_hll
+            org.opencontainers.image.version=${{ matrix.pg_major }}-postgis${{ matrix.postgis_version }}-hll${{ matrix.hll_version }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           build-args: |
-            PG_VERSION=${{ matrix.pg_version }}
-            POSTGIS_VERSION=${{ inputs.postgis_version || '3.5' }}
-            HLL_VERSION=${{ inputs.hll_version || '2.18' }}
+            PG_VERSION=${{ matrix.pg_major }}
+            POSTGIS_VERSION=${{ matrix.postgis_version }}
+            HLL_VERSION=${{ matrix.hll_version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
-            type=registry,ref=${{ env.IMAGE_NAME }}:buildcache-${{ matrix.pg_version }}
+            type=registry,ref=${{ env.IMAGE_NAME }}:buildcache-${{ matrix.pg_major }}
           cache-to: |
-            type=registry,ref=${{ env.IMAGE_NAME }}:buildcache-${{ matrix.pg_version }},mode=max
+            type=registry,ref=${{ env.IMAGE_NAME }}:buildcache-${{ matrix.pg_major }},mode=max
