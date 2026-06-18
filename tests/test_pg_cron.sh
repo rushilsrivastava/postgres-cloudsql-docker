@@ -29,7 +29,7 @@ retry_sql() {
 wait_for_postgres() {
     echo "Waiting for PostgreSQL to be ready..."
     for i in {1..30}; do
-        if docker exec postgres-test pg_isready -U postgres > /dev/null 2>&1; then
+        if docker exec postgres-test pg_isready -h 127.0.0.1 -U postgres > /dev/null 2>&1; then
             echo "PostgreSQL is ready!"
             return 0
         fi

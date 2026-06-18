@@ -20,16 +20,19 @@ jobs:
         include:
           - pg_major: 14
             postgis_version: 3.5
-            hll_version: 2.18
+            hll_version: 2.21
           - pg_major: 15
             postgis_version: 3.5
-            hll_version: 2.18
+            hll_version: 2.21
           - pg_major: 16
             postgis_version: 3.5
-            hll_version: 2.18
+            hll_version: 2.21
           - pg_major: 17
             postgis_version: 3.5
-            hll_version: 2.18
+            hll_version: 2.21
+          - pg_major: 18
+            postgis_version: 3.6
+            hll_version: 2.21
 
     steps:
       - name: Checkout code

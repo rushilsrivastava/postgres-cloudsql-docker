@@ -30,7 +30,7 @@ fi
 # Default versions (matching the workflow defaults)
 PG_VERSION=${PG_VERSION:-15}
 POSTGIS_VERSION=${POSTGIS_VERSION:-3.5}
-HLL_VERSION=${HLL_VERSION:-2.18}
+HLL_VERSION=${HLL_VERSION:-2.21}
 
 # Function to clean up
 cleanup() {

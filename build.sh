@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # PostgreSQL versions to build
-PG_VERSIONS=("14" "15" "16" "17")
+PG_VERSIONS=("14" "15" "16" "17" "18")
 
 # PostGIS version
 POSTGIS_VERSION="3.5"
 
 # HLL version
-HLL_VERSION="2.18"
+HLL_VERSION="2.21"
 
 # Repository name
 REPO="rushilsrivastava/postgres-cloudsql"
